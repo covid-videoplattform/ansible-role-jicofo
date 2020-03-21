@@ -1,7 +1,7 @@
-Role Name
+Jicofo
 =========
 
-A brief description of the role goes here.
+Ansible role for automated installation of a Jitsi Conference Focus System.
 
 Requirements
 ------------
