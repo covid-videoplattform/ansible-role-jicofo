@@ -1,0 +1,59 @@
+---
+# tasks file for ansible-role-jicofo
+
+- name: install base packages
+  apt:
+      name: "{{ item }}"
+      state: present
+  with_list:
+      - ufw
+      - bmon
+      - htop
+      - default-jre
+
+- name: configure firewall rules
+  ufw:
+      rule: "{{ item.rule }}"
+      port: "{{ item.port }}"
+      proto: "{{ item.proto }}"
+  with_items:
+      - { rule: 'allow', port: '22', proto: 'tcp' }
+
+- name: set logging
+  ufw:
+    logging: 'off'
+
+- name: add gpg key for jitsi repo
+  apt_key:
+      url: https://download.jitsi.org/jitsi-key.gpg.key
+      state: present
+
+- name: add jitsi-meet stable apt repo
+  apt_repository:
+      repo: deb https://download.jitsi.org stable/
+      state: present
+
+- name: install jicofo
+  apt:
+      name: jicofo
+      state: present
+
+- name: deploy jicofo sip-communicator template
+  template:
+      src: templates/sip-communicator.properties.j2
+      dest: /etc/jitsi/jicofo/sip-communicator.properties
+
+- name: deploy jicofo config template
+  template:
+      src: templates/config.j2
+      dest: /etc/jitsi/jicofo/config
+
+- name: enable jicofo service
+  systemd:
+      name: jicofo
+      enabled: yes
+
+- name: restart jicofo service
+  systemd:
+      name: jicofo
+      state: restarted
