@@ -1,2 +1,5 @@
 ---
 # defaults file for ansible-role-jicofo
+jicofo_hostname: "{{ jitsi_domain }}"
+jicofo_auth_domain: "auth.{{ jitsi_domain }}"
+jicofo_auth_user: focus
