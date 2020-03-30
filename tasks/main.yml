@@ -46,18 +46,15 @@
   template:
       src: templates/sip-communicator.properties.j2
       dest: /etc/jitsi/jicofo/sip-communicator.properties
+  notify: restart jicofo service
 
 - name: deploy jicofo config template
   template:
       src: templates/config.j2
       dest: /etc/jitsi/jicofo/config
+  notify: restart jicofo service
 
 - name: enable jicofo service
   systemd:
       name: jicofo
       enabled: yes
-
-- name: restart jicofo service
-  systemd:
-      name: jicofo
-      state: restarted
