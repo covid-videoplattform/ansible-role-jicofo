@@ -54,6 +54,34 @@
       dest: /etc/jitsi/jicofo/config
   notify: restart jicofo service
 
+- name: read certificate from prosody
+  command: cat /var/lib/prosody/{{ jitsi_domain }}.crt
+  register: read_certificate_from_prosody
+  delegate_to: "{{ prosody_hostname }}"
+  changed_when: false
+
+- name: write certificate from prosody in local certificate store
+  copy:
+    content: "{{read_certificate_from_prosody.stdout}}"
+    dest: /usr/local/share/ca-certificates/{{ jitsi_domain }}.crt
+  notify:
+    - update-ca-certificates
+    - restart jicofo service
+
+- name: read auth certificate from prosody
+  command: cat /var/lib/prosody/auth.{{ jitsi_domain }}.crt
+  register: read_auth_certificate_from_prosody
+  delegate_to: "{{ prosody_hostname }}"
+  changed_when: false
+
+- name: write auth certificate from prosody in local certificate store
+  copy:
+    content: "{{read_auth_certificate_from_prosody.stdout}}"
+    dest: /usr/local/share/ca-certificates/auth.{{ jitsi_domain }}.crt
+  notify:
+    - update-ca-certificates
+    - restart jicofo service
+
 - name: enable jicofo service
   systemd:
       name: jicofo
