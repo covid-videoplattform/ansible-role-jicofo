@@ -42,7 +42,7 @@
 - name: install jicofo
   apt:
       name: jicofo
-      state: present
+      state: latest
 
 - name: deploy jicofo sip-communicator template
   template:
