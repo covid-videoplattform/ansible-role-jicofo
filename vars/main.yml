@@ -1,2 +1,4 @@
 ---
 # vars file for ansible-role-jicofo
+jicofo_hostname: "{{ jitsi_domain }}"
+jicofo_auth_domain: ""

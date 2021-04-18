@@ -27,17 +27,7 @@
     state: enabled
     policy: deny
 
-- name: add gpg key for jitsi repo
-  apt_key:
-    url: https://download.jitsi.org/jitsi-key.gpg.key
-    state: present
-    keyring: /etc/apt/trusted.gpg.d/jitsi.gpg
-
-- name: add jitsi-meet stable apt repo
-  apt_repository:
-    repo: deb https://download.jitsi.org stable/
-    state: present
-    filename: jitsi
+- import_tasks: jitsi-repo.yaml
 
 - name: install jicofo
   apt:
@@ -50,39 +40,55 @@
       dest: /etc/jitsi/jicofo/sip-communicator.properties
   notify: restart jicofo service
 
+# - name: make sure new jicofo settings are not used for now
+#   file:
+#     path: /etc/jitsi/jicofo/jicofo.conf
+#     state: absent
+#   notify: restart jicofo service
+
+- name: deploy jicofo new settings template
+  template:
+    src: templates/jicofo.conf.j2
+    dest: /etc/jitsi/jicofo/jicofo.conf
+  notify: restart jicofo service
+
 - name: deploy jicofo config template
   template:
       src: templates/config.j2
       dest: /etc/jitsi/jicofo/config
   notify: restart jicofo service
 
-- name: read certificate from prosody
-  command: cat /var/lib/prosody/{{ jitsi_domain }}.crt
-  register: read_certificate_from_prosody
-  delegate_to: "{{ prosody_hostname }}"
-  changed_when: false
+- when: prosody_host != 'localhost'
+  block:
 
-- name: write certificate from prosody in local certificate store
-  copy:
-    content: "{{read_certificate_from_prosody.stdout}}"
-    dest: /usr/local/share/ca-certificates/{{ jitsi_domain }}.crt
-  notify:
-    - update-ca-certificates
-    - restart jicofo service
+    - name: read certificate from prosody
+      command: cat /var/lib/prosody/{{ jitsi_domain }}.crt
+      register: read_certificate_from_prosody
+      delegate_to: "{{ prosody_host }}"
+      changed_when: false
 
-- name: read auth certificate from prosody
-  command: cat /var/lib/prosody/auth.{{ jitsi_domain }}.crt
-  register: read_auth_certificate_from_prosody
-  delegate_to: "{{ prosody_hostname }}"
-  changed_when: false
 
-- name: write auth certificate from prosody in local certificate store
-  copy:
-    content: "{{read_auth_certificate_from_prosody.stdout}}"
-    dest: /usr/local/share/ca-certificates/auth.{{ jitsi_domain }}.crt
-  notify:
-    - update-ca-certificates
-    - restart jicofo service
+    - name: write certificate from prosody in local certificate store
+      copy:
+        content: "{{read_certificate_from_prosody.stdout}}"
+        dest: /usr/local/share/ca-certificates/{{ jitsi_domain }}.crt
+      notify:
+        - update-ca-certificates
+        - restart jicofo service
+
+    - name: read auth certificate from prosody
+      command: cat /var/lib/prosody/{{ jitsi_auth_domain }}.crt
+      register: read_auth_certificate_from_prosody
+      delegate_to: "{{ prosody_host }}"
+      changed_when: false
+
+    - name: write auth certificate from prosody in local certificate store
+      copy:
+        content: "{{read_auth_certificate_from_prosody.stdout}}"
+        dest: /usr/local/share/ca-certificates/{{ jitsi_auth_domain }}.crt
+      notify:
+        - update-ca-certificates
+        - restart jicofo service
 
 - name: enable jicofo service
   systemd:

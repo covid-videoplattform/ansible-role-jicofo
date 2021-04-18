@@ -1,8 +1,4 @@
 ---
 # defaults file for ansible-role-jicofo
-jicofo_hostname: "{{ jitsi_domain }}"
-jicofo_auth_domain: "auth.{{ jitsi_domain }}"
-jicofo_auth_user: focus
-jitsi_secure_domain: false
-
-prosody_ip: "{{ hostvars[prosody_hostname].ansible_default_ipv4.address }}"
+prosody_host: localhost
+prosody_port: 5347

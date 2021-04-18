@@ -1,0 +1,10 @@
+# Jicofo HOCON configuration. See /usr/share/jicofo/jicofo.jar/reference.conf for
+#available options, syntax, and default values.
+jicofo {
+  xmpp {
+    client {
+      conference-muc-jid = {{ jitsi_conference_domain }}
+      client-proxy = {{ jitsi_focus_domain }}
+    }
+  }
+}
